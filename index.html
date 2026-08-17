@@ -5,89 +5,44 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Maya — Kapture Finance Collections</title>
 <style>
-body{margin:0;background:#f4f6fa;font-family:Arial,sans-serif;color:#182033}
+body{margin:0;min-height:100vh;background:#f4f6fa;font-family:Arial,sans-serif;color:#182033}
 .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
-.card{width:min(760px,100%);background:#fff;border-radius:22px;padding:36px;box-shadow:0 12px 40px #0001}
+.card{width:min(820px,100%);background:#fff;border-radius:22px;padding:40px;box-shadow:0 12px 40px rgba(0,0,0,.10)}
 .badge{display:inline-block;background:#eef3ff;color:#3157b7;padding:7px 12px;border-radius:20px;font-size:12px;font-weight:700}
 h1{font-size:42px;margin:18px 0 8px}.sub{color:#5c6678;line-height:1.6}
-.status{margin:22px 0;padding:14px;border-radius:12px;background:#f6f8fb}
-button{border:0;border-radius:12px;padding:14px 22px;font-size:16px;font-weight:700;cursor:pointer;margin-right:10px}
-#start{background:#3157b7;color:white}#stop{background:#e8ebf0;color:#182033}
-#stop:disabled,#start:disabled{opacity:.5;cursor:not-allowed}
-#transcript{margin-top:22px;max-height:280px;overflow:auto;border-top:1px solid #eee;padding-top:14px}
-.msg{padding:9px 12px;margin:7px 0;border-radius:10px;background:#f5f7fa}
-.user{background:#eef3ff}.small{font-size:12px;color:#7a8392}
+.box{margin-top:22px;padding:16px;border-radius:12px;background:#f7f9ff;border-left:4px solid #3157b7;line-height:1.5}
+.small{margin-top:24px;color:#7b8494;font-size:13px}
 </style>
+<script>
+var vapiInstance=null;
+const assistant="dfb50a20-4aea-444e-8dec-d8be51f9b66e";
+const apiKey="83ab5da2-8251-4047-b9bd-aea3cd6fe1a1";
+const buttonConfig={
+ position:"bottom-right",offset:"24px",width:"56px",height:"56px",
+ idle:{color:"#3157b7",type:"pill",title:"Talk to Maya",subtitle:"Voice AI Collections"},
+ loading:{color:"#3157b7",type:"pill",title:"Connecting...",subtitle:"Please wait"},
+ active:{color:"#d64545",type:"pill",title:"End call",subtitle:"Maya is listening"}
+};
+(function(d,t){
+ var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+ g.src="https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+ g.defer=true;g.async=true;s.parentNode.insertBefore(g,s);
+ g.onload=function(){
+   try{
+     vapiInstance=window.vapiSDK.run({apiKey:apiKey,assistant:assistant,config:buttonConfig});
+     console.log("Vapi widget loaded successfully");
+   }catch(e){console.error("Vapi widget initialization error:",e);}
+ };
+})(document,"script");
+</script>
 </head>
 <body>
-<div class="wrap"><main class="card">
+<main class="wrap"><section class="card">
 <span class="badge">KAPTURE FINANCE • VOICE AI DEMO</span>
 <h1>Maya</h1>
-<p class="sub">Kapture Finance Collections Voice Agent. Click Start Voice Call, allow microphone access, and speak naturally with Maya.</p>
-<div class="status" id="status">Ready to start a voice conversation.</div>
-<button id="start">Start Voice Call</button>
-<button id="stop" disabled>End Call</button>
-<div id="transcript"></div>
+<p class="sub">Kapture Finance Collections Voice Agent. Use the voice button in the bottom-right corner to start a real-time conversation with Maya.</p>
+<div class="box"><strong>Demo instructions:</strong><br>Click <strong>Talk to Maya</strong>, allow microphone access when Edge asks, and speak naturally. This public page connects to the existing Maya Vapi assistant and its configured backend tools.</div>
 <p class="small">Prototype demonstration using mock customer/account data.</p>
-</main></div>
-
-<script type="module">
-import Vapi from "https://esm.sh/@vapi-ai/web";
-
-const PUBLIC_KEY="83ab5da2-8251-4047-b9bd-aea3cd6fe1a1";
-const ASSISTANT_ID="dfb50a20-4aea-444e-8dec-d8be51f9b66e";
-
-const vapi=new Vapi(PUBLIC_KEY);
-const statusEl=document.getElementById("status");
-const start=document.getElementById("start");
-const stop=document.getElementById("stop");
-const transcript=document.getElementById("transcript");
-
-function add(role,text){
-  if(!text)return;
-  const d=document.createElement("div");
-  d.className="msg "+(role==="user"?"user":"");
-  d.textContent=(role==="user"?"You: ":"Maya: ")+text;
-  transcript.appendChild(d);
-  transcript.scrollTop=transcript.scrollHeight;
-}
-
-vapi.on("call-start",()=>{
-  statusEl.textContent="Connected. Maya is ready — speak now.";
-  start.disabled=true; stop.disabled=false;
-});
-vapi.on("call-end",()=>{
-  statusEl.textContent="Call ended.";
-  start.disabled=false; stop.disabled=true;
-});
-vapi.on("speech-start",()=>{statusEl.textContent="Listening… speak now.";});
-vapi.on("speech-end",()=>{statusEl.textContent="Processing your response…";});
-vapi.on("message",(m)=>{
-  if(m.type==="transcript" && m.transcript){
-    add(m.role,m.transcript);
-    statusEl.textContent=m.role==="user"?"Processing your response…":"Maya is speaking…";
-  }
-});
-vapi.on("error",(e)=>{
-  console.error(e);
-  statusEl.textContent="Voice connection error. Check microphone permission and the browser console.";
-  start.disabled=false; stop.disabled=true;
-});
-
-start.onclick=async()=>{
-  try{
-    statusEl.textContent="Requesting microphone permission…";
-    await navigator.mediaDevices.getUserMedia({audio:true});
-    statusEl.textContent="Connecting to Maya…";
-    await vapi.start(ASSISTANT_ID);
-  }catch(e){
-    console.error(e);
-    statusEl.textContent="Could not start the call. Allow microphone access and use an HTTPS website.";
-    start.disabled=false; stop.disabled=true;
-  }
-};
-
-stop.onclick=()=>vapi.stop();
-</script>
+</section></main>
 </body>
 </html>
