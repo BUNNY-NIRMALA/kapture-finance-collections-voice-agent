@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const customers = require("./data");
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
@@ -1903,7 +1903,7 @@ app.post("/vapi/mark-disposition", (req, res) => {
 
 // START SERVER
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0",() => {
 
   console.log(
     `\nKapture backend running on http://localhost:${PORT}`
